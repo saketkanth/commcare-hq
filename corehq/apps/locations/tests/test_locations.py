@@ -159,12 +159,6 @@ class LocationsTest(LocationTestBase):
             self.user.location.children
         )
 
-        # siblings
-        compare(
-            [test_state2],
-            test_state1.siblings()
-        )
-
         # parent and parent_id
         self.assertEqual(
             self.user.location._id,
