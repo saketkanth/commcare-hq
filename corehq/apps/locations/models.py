@@ -658,3 +658,17 @@ class Location(CachedCouchDocumentMixin, Document):
     @property
     def location_type_object(self):
         return self._sql_location_type or self.sql_location.location_type
+
+
+def make_location(**kwargs):
+    """
+    Drop-in replacement for the couch Location constructor,
+    but returns a SQLLocation.
+    """
+    domain = kwargs['domain']
+    location_type = kwargs['location_type']
+    if isinstance(location_type, basestring):
+        kwargs['location_type'] = LocationType.objects.get(
+            domain=domain, name=location_type
+        )
+    return SQLLocation(**kwargs)

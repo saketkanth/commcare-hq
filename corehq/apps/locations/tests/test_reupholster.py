@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..models import Location, LocationType
+from ..models import Location, LocationType, make_location
 from .test_locations import LocationTestBase
 from .util import make_loc, delete_all_locations
 
@@ -86,3 +86,14 @@ class TestNoCouchLocationTypes(TestCase):
             self.loc.save()
         self.assertEqual(self.loc.location_type, 'test-type')
         self.assertEqual(self.loc.sql_location.location_type.name, 'test-type')
+
+
+class TestConstructor(LocationTestBase):
+    def test_string_location_type(self):
+        location = make_location(
+            domain=self.domain.name,
+            name="Rhode Island",
+            location_type='state',
+        )
+        location.save()
+        self.assertEqual(location.location_type.name, 'state')
