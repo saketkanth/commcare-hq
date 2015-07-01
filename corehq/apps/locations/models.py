@@ -1,7 +1,7 @@
 import warnings
 from functools import partial
 from couchdbkit import ResourceNotFound
-from corehq.apps.commtrack.dbaccessors import get_supply_point_case_by_location
+from corehq.apps.commtrack.dbaccessors import get_supply_point_case_by_location_id
 from dimagi.ext.couchdbkit import *
 import itertools
 from corehq.apps.cachehq.mixins import CachedCouchDocumentMixin
@@ -173,6 +173,9 @@ class SQLLocation(MPTTModel):
 
     objects = LocationManager()
 
+    _id = property(lambda self: self.location_id)
+    get_id = property(lambda self: self.location_id)
+
     @property
     def products(self):
         """
@@ -308,6 +311,23 @@ class SQLLocation(MPTTModel):
         return list(self.get_ancestors(include_self=True)
                     .values_list('location_id', flat=True))
 
+    @property
+    def parent_id(self):
+        return self.parent.location_id
+
+    @property
+    def children(self):
+        return list(SQLLocation.objects.filter(parent=self))
+
+    def linked_supply_point(self):
+        return get_supply_point_case_by_location_id(self.location_id)
+
+    @property
+    def group_id(self):
+        """
+        This just returns the location's id. It used to add a prefix.
+        """
+        return self.location_id
 
 
 def _filter_for_archived(locations, include_archive_ancestors):
@@ -645,7 +665,7 @@ class Location(CachedCouchDocumentMixin, Document):
                                        .couch_locations())
 
     def linked_supply_point(self):
-        return get_supply_point_case_by_location(self)
+        return get_supply_point_case_by_location_id(self._id)
 
     @property
     def group_id(self):
