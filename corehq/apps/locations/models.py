@@ -643,11 +643,6 @@ class Location(CachedCouchDocumentMixin, Document):
         return self.lineage[0]
 
     @property
-    def parent(self):
-        parent_id = self.parent_id
-        return Location.get(parent_id) if parent_id else None
-
-    @property
     def path(self):
         _path = list(reversed(self.lineage))
         _path.append(self._id)
