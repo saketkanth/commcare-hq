@@ -6,7 +6,9 @@ from .util import make_loc, delete_all_locations
 
 
 class TestPath(LocationTestBase):
-    def test_path(self):
+    @classmethod
+    def setUpClass(cls):
+        super(TestPath, cls).setUpClass()
         locs = [
             ('Mass', 'state'),
             ('Suffolk', 'district'),
@@ -15,8 +17,18 @@ class TestPath(LocationTestBase):
         parent = None
         for name, type_ in locs:
             parent = make_loc(name, type=type_, parent=parent)
-        boston = parent
-        self.assertEqual(boston.path, boston.sql_location.path)
+        cls.boston = parent
+
+    # TODO necessary?
+    @classmethod
+    def tearDownClass(cls):
+        super(TestPath, cls).tearDownClass()
+
+    def test_path(self):
+        self.assertEqual(self.boston.path, self.boston.sql_location.path)
+
+    def test_lineage(self):
+        self.assertEqual(self.boston.lineage, self.boston.sql_location.lineage)
 
 
 class TestNoCouchLocationTypes(TestCase):

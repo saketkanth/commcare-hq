@@ -309,11 +309,11 @@ class SQLLocation(MPTTModel):
     def path(self):
         # This exists for backwards compatability with couch locations
         return list(self.get_ancestors(include_self=True)
-                    .values_list('location_id', flat=True))
+                        .values_list('location_id', flat=True))
 
     @property
-    def parent_id(self):
-        return self.parent.location_id
+    def lineage(self):
+        return reversed(self.get_ancestors().location_ids())
 
     @property
     def children(self):
