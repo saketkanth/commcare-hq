@@ -114,7 +114,7 @@ def view_generic(request, domain, app_id=None, module_id=None, form_id=None,
         module_context = get_module_view_context(app, module)
         context.update(module_context)
     elif app:
-        template = "app_manager/app_view.html"
+        template = "app_manager/app_view/app_view.html"
         context.update(get_app_view_context(request, app))
     else:
         from corehq.apps.dashboard.views import NewUserDashboardView
