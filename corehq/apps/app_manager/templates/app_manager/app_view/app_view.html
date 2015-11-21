@@ -16,7 +16,7 @@
 {% endblock %}
 {% block js-inline %}
     {{ block.super }}
-    {% if app %}
+    {% include 'app_manager/app_view/partials/app-settings.html' %}
     <script>
         COMMCAREHQ.appView = {
             settings: {
@@ -38,7 +38,7 @@
         };
         $(function () {
             COMMCAREHQ.appView.settings = new CommcareSettings(COMMCAREHQ.appView.settings);
-            ko.applyBindings(COMMCAREHQ.appView.settings, $('#commcare-settings').get(0));
+            ko.applyBindings(COMMCAREHQ.appView.settings, $('#app-settings').get(0));
             var multimedia_tab = (function () {
                 var self = {};
                 self.load_state = ko.observable(null);
@@ -68,6 +68,7 @@
         });
 
     </script>
+    {% include 'hqmedia/partials/multimedia_js.html' %}
     {% include 'hqmedia/partials/multimedia_init.html' %}
     <script type="text/javascript">
         var refs = {{ refs|JSON }};
@@ -125,7 +126,7 @@
             }), $("#supported-languages").get(0));
         });
     </script>
-    {% endif %}
+
     <script>
         $.fn.password_setter = function (options) {
             var that = this,
@@ -308,8 +309,8 @@
 {% endblock %}
 {% block form-view %}
     <div class="tab-content">
-        <div class="tab-pane{% if not copy_app_form.is_bound %} active{% endif %}" id="app-settings">
-            {% include "app_manager/app_view/partials/app-settings.html" %}
+        <div class="tab-pane{% if not copy_app_form.is_bound %} active{% endif %}"
+             id="app-settings" data-bind="template: 'CommcareSettings.main'">
         </div>
         {% include 'app_manager/app_view/partials/languages.html' %}
 

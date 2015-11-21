@@ -80,8 +80,6 @@
     </a>
 </script>
 
-{% include 'hqmedia/partials/multimedia_js.html' %}
-
 <script type="text/html" id="CommcareSettings.widgets.text">
     <span>
         <input type="text" class="span6" data-bind="
@@ -149,7 +147,7 @@ todo fix
 </script>
 {% endcomment %}
 
-<div class="tab-pane" id="commcare-settings">
+<script type="text/html" id="CommcareSettings.main">
     <div id="app_short_comment" class="app-comment">{{ app.short_comment }}</div>
     <div class="clearfix" id="settings-save-btn" data-bind="saveButton2: state, saveOptions: saveOptions"></div>
     <form class="form-horizontal">
@@ -242,4 +240,4 @@ todo fix
         </fieldset>
         {% endif %}
     </form>
-</div>
+</script>
