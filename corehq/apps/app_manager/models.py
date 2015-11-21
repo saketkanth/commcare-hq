@@ -4623,7 +4623,7 @@ class Application(ApplicationBase, TranslationMixin, HQMediaMixin):
         })
         return s
 
-    def create_profile(self, is_odk=False, with_media=False, template='app_manager/profile.xml'):
+    def create_profile(self, is_odk=False, with_media=False, template='app_manager_xml/profile.xml'):
         self__profile = self.profile
         app_profile = defaultdict(dict)
 
@@ -4693,7 +4693,7 @@ class Application(ApplicationBase, TranslationMixin, HQMediaMixin):
 
     def create_suite(self):
         if self.application_version == APP_V1:
-            template='app_manager/suite-%s.xml' % self.application_version
+            template = 'app_manager_xml/legacy_suite/suite-1.0.xml' % self.application_version
             return render_to_string(template, {
                 'app': self,
                 'langs': ["default"] + self.build_langs
@@ -5433,7 +5433,6 @@ class CareplanConfig(Document):
         return result
 
 
-# backwards compatibility with suite-1.0.xml
 FormBase.get_command_id = lambda self: id_strings.form_command(self)
 FormBase.get_locale_id = lambda self: id_strings.form_locale(self)
 
