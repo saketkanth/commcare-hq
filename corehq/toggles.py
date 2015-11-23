@@ -3,6 +3,7 @@ from functools import wraps
 import hashlib
 from django.http import Http404
 import math
+from corehq.util.quickcache import quickcache
 from toggle.shortcuts import toggle_enabled, set_toggle
 
 Tag = namedtuple('Tag', 'name css_class')
@@ -135,6 +136,7 @@ def all_toggles():
                 yield toggle
 
 
+@quickcache(['username', 'domain'])
 def toggles_dict(username=None, domain=None):
     """
     Loads all toggles into a dictionary for use in JS

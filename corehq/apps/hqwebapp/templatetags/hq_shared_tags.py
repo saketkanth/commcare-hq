@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.http import QueryDict
 from corehq.apps.domain.models import Domain
+from corehq.toggles import toggles_dict
 from corehq.util.soft_assert import soft_assert
 from dimagi.utils.web import json_handler
 
@@ -228,6 +229,10 @@ def feature_preview_enabled(request, toggle_name):
     import corehq.feature_previews
     return _toggle_enabled(corehq.feature_previews, request, toggle_name)
 
+
+@register.filter
+def toggles_json(request):
+    return JSON(toggles_dict(request.couch_user.username, request.domain))
 
 def parse_literal(value, parser, tag):
     var = parser.compile_filter(value).var

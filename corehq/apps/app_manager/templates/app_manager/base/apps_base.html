@@ -48,6 +48,7 @@
     $(function () {
        $('.app-manager-content').removeClass('hide');
     });
+    COMMCAREHQ.toggles = {{ request|toggles_json }};
     </script>
 {% endblock %}
 {% block keyboard_shortcuts %}

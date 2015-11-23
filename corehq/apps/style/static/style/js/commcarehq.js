@@ -284,6 +284,8 @@ COMMCAREHQ.beforeUnloadCallback = function () {
     }
 };
 
+COMMCAREHQ.toggles = {};
+
 $(function () {
     'use strict';
     COMMCAREHQ.initBlock($("body"));

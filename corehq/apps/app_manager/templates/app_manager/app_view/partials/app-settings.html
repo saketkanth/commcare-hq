@@ -1,6 +1,5 @@
 {% load i18n %}
 {% load hq_shared_tags %}
-{% load xforms_extras %}
 
 <script type="text/html" id="CommcareSettings.widgets.select">
     <span>
@@ -132,20 +131,6 @@
         </div>
     </aside>
 </script>
-{% comment %}
-todo fix
-<script>
-    $(function () {
-        $('#show-user-registration-select').change(function () {
-            if (JSON.parse($(this).val())) {
-                $('#user-registration-nav-link').slideDown();
-            } else {
-                $('#user-registration-nav-link').slideUp();
-            }
-        });
-    });
-</script>
-{% endcomment %}
 
 <script type="text/html" id="CommcareSettings.main">
     <div id="app_short_comment" class="app-comment">{{ app.short_comment }}</div>
@@ -197,8 +182,7 @@ todo fix
                 </div>
             </fieldset>
         </div>
-        {% if request|toggle_enabled:"CUSTOM_PROPERTIES" %}
-        <fieldset>
+        <fieldset data-bind="if: COMMCAREHQ.toggles.CUSTOM_PROPERTIES">
             <legend>
                 <a
                     class="accordion-toggle"
@@ -238,6 +222,5 @@ todo fix
                 </div>
             </div>
         </fieldset>
-        {% endif %}
     </form>
 </script>
