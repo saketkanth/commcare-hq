@@ -4,6 +4,7 @@
   "dependencies": {
     "jquery": "1.11.1",
     "jquery-1.9.1-legacy": "jquery#1.9.1",
+    "jquery-migrate": "1.2.1",
     "underscore": "1.6.0",
     "underscore-legacy": "underscore#1.4.4",
     "jquery-form": "3.45.0",
