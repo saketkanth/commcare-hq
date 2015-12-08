@@ -844,3 +844,9 @@ def unassign_users(request, domain):
                      _("All users have been unassigned from their locations"))
     fallback_url = reverse('users_default', args=[domain])
     return HttpResponseRedirect(request.POST.get('redirect', fallback_url))
+
+
+class DummyLocationsView(BaseLocationView):
+    urlname = 'dummy_locations_view'
+    page_title = ugettext_noop("Dummy Locations View")
+    template_name = 'locations/dummy.html'

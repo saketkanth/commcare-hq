@@ -10,6 +10,7 @@ from .views import (
     LocationTypesView,
     LocationFieldsView,
     DowngradeLocationsView,
+    DummyLocationsView,
 )
 
 settings_urls = patterns('corehq.apps.locations.views',
@@ -29,6 +30,7 @@ settings_urls = patterns('corehq.apps.locations.views',
     url(r'^downgrade/$', DowngradeLocationsView.as_view(),
         name=DowngradeLocationsView.urlname),
     url(r'^unassign_users/$', 'unassign_users', name='unassign_users'),
+    url(r'^dummy/$', DummyLocationsView.as_view(), name=DummyLocationsView.urlname),
     url(r'^(?P<loc_id>[\w-]+)/archive/$', 'archive_location', name='archive_location'),
     url(r'^(?P<loc_id>[\w-]+)/unarchive/$', 'unarchive_location', name='unarchive_location'),
     url(r'^(?P<loc_id>[\w-]+)/$', EditLocationView.as_view(), name=EditLocationView.urlname),

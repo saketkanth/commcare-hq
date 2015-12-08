@@ -1,0 +1,26 @@
+{% extends 'settings/bootstrap2/base_template.html' %}
+{% load hq_shared_tags %}
+{% load hqstyle_tags %}
+{% load i18n %}
+
+{% block js %}{{ block.super }}
+
+<script src="{% new_static 'hqwebapp/js/lib/require.js' %}"></script>
+
+<script>
+require(["{% new_static 'hqwebapp/js/hq_paths.js' %}"], function(hq_paths) {
+    require(["{% new_static 'locations/ko/dummy.js' %}"], function(dummy) {
+        console.log("Hello!");
+        dummy.say_hi("Ethan");
+        dummy.update_text("Ethan");
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block main_column %}
+<h3>
+Hello <span id="foo">someone</span>
+</h3>
+{% endblock %}

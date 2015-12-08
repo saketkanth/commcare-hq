@@ -15,6 +15,7 @@ from .forms import LocationForm
 from .util import parent_child
 
 
+# can remove
 class LocationCache(object):
     """
     Used to cache locations in memory during a bulk upload for optimization
