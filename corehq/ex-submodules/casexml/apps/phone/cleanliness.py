@@ -157,8 +157,8 @@ def get_cleanliness_flag_from_scratch(domain, owner_id):
             extension_cases_to_check = extension_cases_to_check - dependent_cases
             dependent_cases_owned_by_other_owners = {
                 dependent_case['_id']
-                for dependent_case in iter_docs(CommCareCase.get_db(), unowned_dependent_cases)
-                if dependent_case['owner_id'] != UNOWNED_EXTENSION_OWNER_ID
+                for dependent_case in casedb.get_cases(list(unowned_dependent_cases))
+                if dependent_case.owner_id != UNOWNED_EXTENSION_OWNER_ID
             }
             if dependent_cases_owned_by_other_owners:
                 hint_id = dependent_cases & owned_cases
@@ -175,8 +175,8 @@ def get_cleanliness_flag_from_scratch(domain, owner_id):
                 infos_for_this_owner = _get_info_by_case_id(reverse_index_infos, hint_id)
                 for info in infos_for_this_owner:
                     try:
-                        case = CommCareCase.get(info.referenced_id)
-                        if case.doc_type == 'CommCareCase':
+                        case = CaseAccessors(domain).get_case(info.referenced_id)
+                        if not case.is_deleted:
                             return CleanlinessFlag(False, hint_id)
                         else:
                             found_deleted_cases = True
