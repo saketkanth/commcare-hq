@@ -109,6 +109,10 @@ class AbstractCaseAccessor(six.with_metaclass(ABCMeta)):
         raise NotImplementedError
 
     @abstractmethod
+    def get_last_modified_dates(domain, case_ids):
+        raise NotImplementedError
+
+    @abstractmethod
     def get_all_reverse_indices_info(domain, case_ids):
         raise NotImplementedError
 
@@ -157,6 +161,10 @@ class CaseAccessors(object):
     def get_indexed_case_ids(self, domain, case_ids):
         assert domain == self.domain  # TODO: Get rid of domain arg?
         return self.db_accessor.get_indexed_case_ids(domain, case_ids)
+
+    def get_last_modified_dates(self, domain, case_ids):
+        assert domain == self.domain  # TODO: Get rid of domain arg?
+        return self.db_accessor.get_last_modified_dates(domain, case_ids)
 
     def get_closed_case_ids(self, domain, owner_id):
         assert domain == self.domain # TODO: Get rid of domain arg?
