@@ -8,8 +8,7 @@ from casexml.apps.case.models import CommCareCase
 from casexml.apps.phone.exceptions import InvalidDomainError, InvalidOwnerIdError
 from casexml.apps.phone.models import OwnershipCleanlinessFlag
 from corehq.apps.domain.models import Domain
-from corehq.apps.hqcase.dbaccessors import get_open_case_ids, \
-    get_closed_case_ids, get_all_case_owner_ids
+from corehq.apps.hqcase.dbaccessors import get_all_case_owner_ids
 from corehq.apps.users.util import WEIRD_USER_IDS
 from django.conf import settings
 from corehq.form_processor.interfaces.dbaccessors import CaseAccessors
