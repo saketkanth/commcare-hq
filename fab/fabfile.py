@@ -239,6 +239,34 @@ def zambia():
 
 
 @task
+def swiss():
+    """Our production server for Swiss Tropical Institute."""
+    load_env('swiss')
+    env.hosts = ['185.12.7.167']
+
+    _setup_path()
+
+    env.roledefs = {
+        'couch': [],
+        'pg': [],
+        'rabbitmq': [],
+        'django_celery': [],
+        'sms_queue': [],
+        'reminder_queue': [],
+        'pillow_retry_queue': [],
+        'django_app': [],
+        'django_pillowtop': [],
+        'formsplayer': [],
+        'staticfiles': [],
+        'lb': [],
+        'deploy': [],
+
+        'django_monolith': ['185.12.7.167'],
+    }
+    env.roles = ['django_monolith']
+
+
+@task
 def production():
     """www.commcarehq.org"""
     if env.code_branch != 'master':
