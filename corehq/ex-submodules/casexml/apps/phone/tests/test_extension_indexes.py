@@ -28,7 +28,7 @@ def test_generator(test_name, skip=False):
         self.build_case_structures(test_name)
         desired_cases = self._get_test(test_name).get('outcome', [])
         undesired_cases = [case for case in self.ALL_CASES if case not in desired_cases]
-        sync_log = get_properly_wrapped_sync_log(self.sync_log._id)
+        sync_log = get_properly_wrapped_sync_log(self.sync_log.sync_log_id)
         self.assertEqual(sync_log.case_ids_on_phone, set(desired_cases))
         assert_user_has_cases(self, self.user, desired_cases)
         assert_user_doesnt_have_cases(self, self.user, undesired_cases)

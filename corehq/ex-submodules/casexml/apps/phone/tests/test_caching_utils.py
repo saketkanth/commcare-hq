@@ -59,7 +59,7 @@ class CacheUtilsDbTest(TestCase):
     def test_copy_payload(self):
         sync_log = SimplifiedSyncLog(case_ids_on_phone=set(['case-1', 'case-2']))
         sync_log.save()
-        payload = dummy_restore_xml(sync_log._id).strip()
+        payload = dummy_restore_xml(sync_log.sync_log_id).strip()
         fd, path = tempfile.mkstemp()
         with os.fdopen(fd, 'wb') as f:
             f.write(payload)
@@ -69,9 +69,9 @@ class CacheUtilsDbTest(TestCase):
 
         updated_payload = updated_fileref.file.read()
         updated_id = synclog_id_from_restore_payload(updated_payload)
-        self.assertNotEqual(sync_log._id, updated_id)
+        self.assertNotEqual(sync_log.sync_log_id, updated_id)
         self.assertTrue(_restore_id_block(updated_id) in updated_payload)
-        self.assertFalse(sync_log._id in updated_payload)
+        self.assertFalse(sync_log.sync_log_id in updated_payload)
         updated_log = get_properly_wrapped_sync_log(updated_id)
         self.assertEqual(updated_log.case_ids_on_phone, sync_log.case_ids_on_phone)
 

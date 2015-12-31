@@ -137,6 +137,14 @@ class AbstractSyncLog(SafeSaveDocument, UnicodeMixIn):
 
     strict = True  # for asserts
 
+    def __get_sync_log_id(self):
+        return self._id
+
+    def __set_sync_log_id(self, id):
+        self._id = id
+
+    sync_log_id = property(__get_sync_log_id, __set_sync_log_id)
+
     @classmethod
     def get(cls, doc_id):
         doc = get_sync_log_doc(doc_id)

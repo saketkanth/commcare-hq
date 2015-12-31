@@ -132,7 +132,7 @@ def update_sync_log_with_checks(sync_log, xform, cases, case_db,
                                 case_id_blacklist=case_id_blacklist
                             )
                         )
-            updated_log = get_properly_wrapped_sync_log(sync_log._id)
+            updated_log = get_properly_wrapped_sync_log(sync_log.sync_log_id)
 
             update_sync_log_with_checks(updated_log, xform, cases, case_db,
                                         case_id_blacklist=case_id_blacklist)

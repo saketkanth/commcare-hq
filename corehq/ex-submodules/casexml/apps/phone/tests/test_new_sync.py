@@ -156,13 +156,13 @@ class TestNewSyncSpecifics(TestCase):
         restore_payload = restore_config.get_payload().as_string()
         self.assertTrue(child_id in restore_payload)
         self.assertTrue(parent_id in restore_payload)
-        sync_log = synclog_from_restore_payload(restore_payload)
+        sync_log = synclog_from_restore_payload(self.project.name, restore_payload)
         self.assertEqual(SimplifiedSyncLog, type(sync_log))
         # make both cases irrelevant by changing the owner ids
         factory.create_or_update_cases([
             CaseStructure(case_id=parent_id, attrs={'owner_id': 'different'}),
             CaseStructure(case_id=child_id, attrs={'owner_id': 'different'}),
-        ], form_extras={'last_sync_token': sync_log._id})
+        ], form_extras={'last_sync_token': sync_log.sync_log_id})
 
         # doing it again should fail since they are no longer relevant
 
@@ -171,7 +171,7 @@ class TestNewSyncSpecifics(TestCase):
         #     factory.create_or_update_cases([
         #         CaseStructure(case_id=child_id, attrs={'owner_id': 'different'}),
         #         CaseStructure(case_id=parent_id, attrs={'owner_id': 'different'}),
-        #     ], form_extras={'last_sync_token': sync_log._id})
+        #     ], form_extras={'last_sync_token': sync_log.sync_log_id})
 
         # enabling the toggle should prevent the failure the second time
         # though we also need to hackily set the request object in the threadlocals
@@ -181,4 +181,4 @@ class TestNewSyncSpecifics(TestCase):
         factory.create_or_update_cases([
             CaseStructure(case_id=child_id, attrs={'owner_id': 'different'}),
             CaseStructure(case_id=parent_id, attrs={'owner_id': 'different'}),
-        ], form_extras={'last_sync_token': sync_log._id})
+        ], form_extras={'last_sync_token': sync_log.sync_log_id})

@@ -25,7 +25,7 @@ class SyncElementProvider(RestoreDataProvider):
     Gets the initial sync element.
     """
     def get_elements(self, restore_state):
-        yield xml.get_sync_element(restore_state.current_sync_log._id)
+        yield xml.get_sync_element(restore_state.current_sync_log.sync_log_id)
 
 
 class RegistrationElementProvider(RestoreDataProvider):

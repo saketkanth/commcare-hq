@@ -25,7 +25,7 @@ def copy_payload_and_synclog_and_get_new_file(filelike_payload):
     del new_sync_log_doc['_rev']
     old_sync_log.get_db().save_doc(new_sync_log_doc)
     return replace_sync_log_id_in_filelike_payload(
-        filelike_payload, old_sync_log._id, new_sync_log_id, end_position
+        filelike_payload, old_sync_log.sync_log_id, new_sync_log_id, end_position
     )
 
 
