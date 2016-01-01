@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from corehq.form_processor.models import CommCareCaseIndexSQL, CommCareCaseSQL
+from corehq.form_processor.models import CommCareCaseIndexSQL, CommCareCaseSQL, SyncLogSQL
 
 from .models import XFormInstanceSQL, XFormOperationSQL
 
@@ -32,3 +32,8 @@ class CommCareCaseSQLSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommCareCaseSQL
+
+
+class SyncLogSQLSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SyncLogSQL

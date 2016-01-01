@@ -1,4 +1,5 @@
 import logging
+import uuid
 from itertools import groupby
 
 from django.db import connections, InternalError, transaction
@@ -12,7 +13,7 @@ from corehq.form_processor.interfaces.dbaccessors import (
 from corehq.form_processor.models import (
     XFormInstanceSQL, CommCareCaseIndexSQL, CaseAttachmentSQL, CaseTransaction,
     CommCareCaseSQL, XFormAttachmentSQL, XFormOperationSQL,
-    CommCareCaseIndexSQL_DB_TABLE, CaseAttachmentSQL_DB_TABLE)
+    CommCareCaseIndexSQL_DB_TABLE, CaseAttachmentSQL_DB_TABLE, SyncLogSQL)
 from corehq.form_processor.utils.sql import fetchone_as_namedtuple, fetchall_as_namedtuple, case_adapter, \
     case_transaction_adapter, case_index_adapter, case_attachment_adapter
 from corehq.sql_db.routers import db_for_read_write
@@ -457,7 +458,30 @@ class CaseAccessorSQL(AbstractCaseAccessor):
 
 
 class SyncLogAccessorSQL(AbstractSyncLogAccessor):
-    pass
+
+    @staticmethod
+    def save_new_sync_log(**kwargs):
+        # TODO: Use sql functions
+        kwargs['sync_log_id'] = uuid.uuid4().hex  # Why do I need to do this here, but we didn't need to elsewhere?
+        new_sync_log = SyncLogSQL(**kwargs)
+        new_sync_log.save()
+        return new_sync_log
+
+    @staticmethod
+    def save_sync_log(sync_log):
+        # TODO: Use sql functions
+        sync_log.save()
+
+    @staticmethod
+    def get_sync_log(sync_log_id):
+        # TODO: Use sql functions
+        return SyncLogSQL.objects.get(sync_log_id=sync_log_id)
+
+    @staticmethod
+    def update_sync_log_format(sync_log):
+        # Only one format exists for SQL sync logs. This method exists because
+        # the analogous couch accessor uses two different formats.
+        return sync_log
 
 def _order_list(id_list, object_list, id_property):
     # SQL won't return the rows in any particular order so we need to order them ourselves

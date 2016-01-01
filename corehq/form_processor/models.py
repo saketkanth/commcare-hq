@@ -27,7 +27,8 @@ from couchforms.signals import xform_archived, xform_unarchived
 from couchforms import const
 from couchforms.jsonobject_extensions import GeoPointProperty
 
-from .abstract_models import AbstractXFormInstance, AbstractCommCareCase
+from .abstract_models import AbstractXFormInstance, AbstractCommCareCase, \
+    AbstractSyncLog, AbstractIndexTree
 from .exceptions import AttachmentNotFound, AccessRestricted
 
 XFormInstanceSQL_DB_TABLE = 'form_processor_xforminstancesql'
@@ -38,6 +39,8 @@ CommCareCaseSQL_DB_TABLE = 'form_processor_commcarecasesql'
 CommCareCaseIndexSQL_DB_TABLE = 'form_processor_commcarecaseindexsql'
 CaseAttachmentSQL_DB_TABLE = 'form_processor_caseattachmentsql'
 CaseTransaction_DB_TABLE = 'form_processor_casetransaction'
+
+SyncLogSQL_DB_TABLE = 'form_processor_synclogsql'
 
 
 class Attachment(namedtuple('Attachment', 'name raw_content content_type')):
@@ -406,6 +409,76 @@ class SupplyPointCaseMixin(object):
     def sql_location(self):
         from corehq.apps.locations.models import SQLLocation
         return SQLLocation.objects.get(location_id=self.location_id)
+
+
+class SetField(JSONField):
+    # TODO: Do some validation
+
+    def to_python(self, value):
+        json_value = super(SetField, self).to_python(value)
+        if not json_value:
+            return set()
+        return set(json_value)
+
+    def get_db_prep_value(self, value, **kwargs):
+        val = value
+        if isinstance(val, set):
+            val = list(val)
+        return super(SetField, self).get_db_prep_value(val, **kwargs)
+
+
+class IndexTreeField(JSONField):
+    pass
+
+# TODO: are the redis mixin and the track related mixins needed?
+#class SyncLogSQL(DisabledDbMixin, models.Model, RedisLockableMixIn,
+class SyncLogSQL(models.Model, RedisLockableMixIn,
+                 AbstractSyncLog, TrackRelatedChanges):
+    # objects = RestrictedManager()
+
+    # TODO: We might want to subclass CharField with an "IDField" or something like that to remove all the max_length=255 magic numbers that are all over the models
+    sync_log_id = models.CharField(max_length=255, unique=True, db_index=True, primary_key=True)
+    date = models.DateTimeField()  # TODO: Required?
+    user_id = models.CharField(max_length=255)  # TODO: Required?
+    previous_log_id = models.CharField(max_length=255, null=True)
+    duration = models.IntegerField(null=True)  # in seconds
+
+    # owner_ids_on_phone stores the ids the phone thinks it's the owner of.
+    # This typically includes the user id,
+    # as well as all groups that that user is a member of.
+    owner_ids_on_phone = JSONField()  # TODO: This should be an array field
+
+    case_ids_on_phone = SetField()
+    # this is a subset of case_ids_on_phone used to flag that a case is only around because it has dependencies
+    # this allows us to purge it if possible from other actions
+    dependent_case_ids_on_phone = SetField()
+    owner_ids_on_phone = SetField()
+
+    index_tree = IndexTreeField()  # index tree of subcases / children
+    extension_index_tree = IndexTreeField()  # index tree of extensions
+
+    closed_cases = SetField()
+    extensions_checked = models.BooleanField(default=False)
+
+    # for debugging / logging
+    # TODO: Do we still want these?
+    last_submitted = models.DateTimeField(null=True)  # last time a submission caused this to be modified
+    last_cached = models.DateTimeField(null=True)  # last time this generated a cached response
+    hash_at_last_cached = models.TextField(null=True)  # the state hash of this when it was last cached
+
+    # save state errors and hashes here
+    had_state_error = models.BooleanField(default=False)
+    error_date = models.DateTimeField(null=True)
+    error_hash = models.TextField(null=True)
+
+    class Meta:
+        # TODO: Decide on what indexes this model should have
+        db_table = SyncLogSQL_DB_TABLE
+
+    def to_json(self):
+        from .serializers import SyncLogSQLSerializer
+        serializer = SyncLogSQLSerializer(self)
+        return serializer.data
 
 
 class CommCareCaseSQL(DisabledDbMixin, models.Model, RedisLockableMixIn,
