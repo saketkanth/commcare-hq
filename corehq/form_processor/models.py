@@ -427,8 +427,31 @@ class SetField(JSONField):
         return super(SetField, self).get_db_prep_value(val, **kwargs)
 
 
+class GenericIndexTree(AbstractIndexTree):
+
+    def __init__(self, *args, **kwargs):
+        self.indices = kwargs.get('indices', None) or {}
+
+
 class IndexTreeField(JSONField):
-    pass
+    # TODO: Do some validation
+
+    def to_python(self, value):
+        indices = super(IndexTreeField, self).to_python(value)
+        if not indices:
+            return None
+        return GenericIndexTree(indices=indices)
+
+    def get_db_prep_value(self, value, **kwargs):
+        from casexml.apps.phone.models import IndexTree  # TODO: Need to be local?
+
+        if isinstance(value, GenericIndexTree):
+            value = value.indices
+        if isinstance(value, IndexTree):
+            # TODO: This is rather messy. It would be better if all the places where we create IndexTree() we instead
+            # use an Accessors method to get the right class first.
+            value = dict(value.indices)
+        return super(IndexTreeField, self).get_db_prep_value(value, **kwargs)
 
 # TODO: are the redis mixin and the track related mixins needed?
 #class SyncLogSQL(DisabledDbMixin, models.Model, RedisLockableMixIn,
