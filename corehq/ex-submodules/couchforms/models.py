@@ -5,6 +5,8 @@ import datetime
 import hashlib
 import logging
 import time
+
+from casexml.apps.phone.models import get_properly_wrapped_sync_log
 from corehq.util.couch_helpers import CouchAttachmentsBuilder
 from jsonobject.base import DefaultProperty
 from lxml import etree
@@ -138,6 +140,18 @@ class XFormInstance(SafeSaveDocument, UnicodeMixIn, ComputedDocumentMixin,
             return db.get(docid, rev=rev, wrapper=cls.wrap, **extras)
         except ResourceNotFound:
             raise XFormNotFound
+
+    @memoized
+    def get_sync_token(self):
+        if self.last_sync_token:
+            try:
+                return get_properly_wrapped_sync_log(self.last_sync_token)
+            except ResourceNotFound:
+                logging.exception('No sync token with ID {} found. Form is {} in domain {}'.format(
+                    self.last_sync_token, self.form_id, self.domain,
+                ))
+                raise
+        return None
 
     @property
     def type(self):

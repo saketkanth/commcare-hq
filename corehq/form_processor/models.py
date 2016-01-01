@@ -218,6 +218,21 @@ class XFormInstanceSQL(DisabledDbMixin, models.Model, RedisLockableMixIn, Attach
     def is_submission_error_log(self):
         return self.state == self.SUBMISSION_ERROR_LOG
 
+    @memoized
+    def get_sync_token(self):
+        from corehq.form_processor.backends.sql.dbaccessors import SyncLogAccessorSQL
+        # TODO: It might be better to use the SyncLogAccessors class instead so that one isn't required to use all the sql models together
+        if self.last_sync_token:
+            try:
+                return SyncLogAccessorSQL.get_sync_log(self.last_sync_token)
+            except ResourceNotFound:
+                # TODO: Replace this with the right exception type
+                logging.exception('No sync token with ID {} found. Form is {} in domain {}'.format(
+                    self.last_sync_token, self.form_id, self.domain,
+                ))
+                raise
+        return None
+
     @property
     @memoized
     def form_data(self):
