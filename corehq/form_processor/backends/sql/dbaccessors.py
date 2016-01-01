@@ -3,8 +3,12 @@ from itertools import groupby
 
 from django.db import connections, InternalError, transaction
 from corehq.form_processor.exceptions import XFormNotFound, CaseNotFound, AttachmentNotFound, CaseSaveError
-from corehq.form_processor.interfaces.dbaccessors import AbstractCaseAccessor, AbstractFormAccessor, \
-    CaseIndexInfo
+from corehq.form_processor.interfaces.dbaccessors import (
+    AbstractCaseAccessor,
+    AbstractFormAccessor,
+    AbstractSyncLogAccessor,
+    CaseIndexInfo,
+)
 from corehq.form_processor.models import (
     XFormInstanceSQL, CommCareCaseIndexSQL, CaseAttachmentSQL, CaseTransaction,
     CommCareCaseSQL, XFormAttachmentSQL, XFormOperationSQL,
@@ -451,6 +455,9 @@ class CaseAccessorSQL(AbstractCaseAccessor):
             results = fetchall_as_namedtuple(cursor)
             return dict((result.case_id, result.server_modified_on) for result in results)
 
+
+class SyncLogAccessorSQL(AbstractSyncLogAccessor):
+    pass
 
 def _order_list(id_list, object_list, id_property):
     # SQL won't return the rows in any particular order so we need to order them ourselves

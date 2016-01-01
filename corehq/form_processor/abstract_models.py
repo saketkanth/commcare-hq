@@ -124,6 +124,12 @@ class AbstractCommCareCase(object):
         raise NotImplementedError
 
 
+class AbstractSyncLog(object):
+
+    def to_json(self):
+        raise NotImplementedError
+
+
 class AbstractLedgerValue(six.with_metaclass(ABCMeta)):
     @abstractproperty
     def case_id(self):

@@ -2,7 +2,8 @@ from collections import defaultdict
 from copy import copy
 from functools import partial
 from datetime import datetime
-from corehq.form_processor.interfaces.dbaccessors import CaseAccessors
+from corehq.form_processor.interfaces.dbaccessors import CaseAccessors, SyncLogAccessors
+from dimagi.utils.couch.undo import is_deleted
 from corehq.toggles import EXTENSION_CASES_SYNC_ENABLED
 from casexml.apps.case.const import CASE_INDEX_EXTENSION, CASE_INDEX_CHILD
 from casexml.apps.phone.cleanliness import get_case_footprint_info
@@ -110,10 +111,10 @@ class CleanOwnerCaseSyncOperation(object):
             all_maybe_syncing = all_maybe_syncing | case_ids_to_sync
 
         # update sync token - marking it as the new format
-        self.restore_state.current_sync_log = SimplifiedSyncLog.wrap(
-            self.restore_state.current_sync_log.to_json()
-        )
-        self.restore_state.current_sync_log.log_format = LOG_FORMAT_SIMPLIFIED
+        self.restore_state.current_sync_log = \
+            SyncLogAccessors(self.restore_state.domain).update_sync_log_format(
+                self.restore_state.current_sync_log
+            )
         self.restore_state.current_sync_log.extensions_checked = True
 
         index_tree = IndexTree(indices=child_indices)

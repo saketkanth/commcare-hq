@@ -11,6 +11,8 @@ from casexml.apps.phone.exceptions import (
     MissingSyncLog, InvalidSyncLogException, SyncLogUserMismatch,
     BadStateException, RestoreException,
 )
+from corehq.form_processor.exceptions import SyncLogNotFound
+from corehq.form_processor.interfaces.dbaccessors import SyncLogAccessors
 from corehq.toggles import LOOSE_SYNC_TOKEN_VALIDATION, EXTENSION_CASES_SYNC_ENABLED
 from corehq.util.soft_assert import soft_assert
 from dimagi.utils.decorators.memoized import memoized
@@ -323,7 +325,7 @@ class RestoreState(object):
                     self.last_sync_log.had_state_error = True
                     self.last_sync_log.error_date = datetime.utcnow()
                     self.last_sync_log.error_hash = str(parsed_hash)
-                    self.last_sync_log.save()
+                    SyncLogAccessors(self.domain).save_sync_log(self.last_sync_log)
 
                     exception = BadStateException(
                         server_hash=computed_hash,
@@ -348,22 +350,17 @@ class RestoreState(object):
     def last_sync_log(self):
         if self.params.sync_log_id:
             try:
-                sync_log = get_properly_wrapped_sync_log(self.params.sync_log_id)
-            except ResourceNotFound:
+                sync_log = SyncLogAccessors(self.domain).get_sync_log(self.params.sync_log_id)
+            except SyncLogNotFound:
                 # if we are in loose mode, return an HTTP 412 so that the phone will
                 # just force a fresh sync
                 raise MissingSyncLog('No sync log with ID {} found'.format(self.params.sync_log_id))
-            if sync_log.doc_type != 'SyncLog':
-                raise InvalidSyncLogException('Bad sync log doc type for {}'.format(self.params.sync_log_id))
-            elif sync_log.user_id != self.user.user_id:
+
+            if sync_log.user_id != self.user.user_id:
                 raise SyncLogUserMismatch('Sync log {} does not match user id {} (was {})'.format(
                     self.params.sync_log_id, self.user.user_id, sync_log.user_id
                 ))
-
-            # convert to the right type if necessary
-            if not isinstance(sync_log, self.sync_log_class):
-                # this call can fail with an IncompatibleSyncLogType error
-                sync_log = self.sync_log_class.from_other_format(sync_log)
+            sync_log = SyncLogAccessors(self.domain).convert_sync_log_type(sync_log, self.sync_log_class)
             return sync_log
         else:
             return None
@@ -404,22 +401,17 @@ class RestoreState(object):
     def finish_sync(self):
         self.duration = datetime.utcnow() - self.start_time
         self.current_sync_log.duration = self.duration.seconds
-        self.current_sync_log.save()
+        SyncLogAccessors(self.domain).save_sync_log(self.current_sync_log)
 
     def create_sync_log(self):
-        previous_log_id = None if self.is_initial else self.last_sync_log._id
-        previous_log_rev = None if self.is_initial else self.last_sync_log._rev
-        last_seq = str(get_db().info()["update_seq"])
-        new_synclog = SyncLog(
+        previous_log_id = None if self.is_initial else self.last_sync_log.sync_log_id
+        new_sync_log = SyncLogAccessors(self.domain).save_new_sync_log(
             user_id=self.user.user_id,
-            last_seq=last_seq,
             owner_ids_on_phone=list(self.owner_ids),
             date=datetime.utcnow(),
             previous_log_id=previous_log_id,
-            previous_log_rev=previous_log_rev,
         )
-        new_synclog.save(**get_safe_write_kwargs())
-        return new_synclog
+        return new_sync_log
 
     @property
     def sync_log_class(self):

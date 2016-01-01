@@ -175,3 +175,65 @@ class CaseAccessors(object):
         return self.db_accessor.get_all_reverse_indices_info(self.domain, case_ids)
 
 CaseIndexInfo = namedtuple('CaseIndexInfo', ['case_id', 'identifier', 'referenced_id', 'referenced_type', 'relationship'])
+
+class AbstractSyncLogAccessor(six.with_metaclass(ABCMeta)):
+    """
+    Contract for common methods expected on SyncLogAccessor(SQL/Couch). All methods
+    should be static or classmethods.
+    """
+    @abstractmethod
+    def save_sync_log(sync_log):
+        raise NotImplementedError
+
+    @abstractmethod
+    def save_new_sync_log(**kwargs):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_sync_log(sync_log_id):
+        raise NotImplementedError
+
+    @abstractmethod
+    def convert_sync_log_type(sync_log, desired_type):
+        # TODO: Remove this method when we're off couch
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_sync_log_format(sync_log):
+        # TODO: Remove this method when we're off couch
+        raise NotImplementedError
+
+class SyncLogAccessors(object):
+    """
+    Facade for sync log db access that proxies method calls to SQL or Couch version
+    """
+    def __init__(self, domain=None):
+        self.domain = domain
+
+    @property
+    @memoized
+    def db_accessor(self):
+        from corehq.form_processor.backends.sql.dbaccessors import SyncLogAccessorSQL
+        from corehq.form_processor.backends.couch.dbaccessors import SyncLogAccessorCouch
+        if should_use_sql_backend(self.domain):
+            return SyncLogAccessorSQL
+        else:
+            return SyncLogAccessorCouch
+
+    def save_new_sync_log(self, **kwargs):
+        return self.db_accessor.save_new_sync_log(**kwargs)
+
+    def save_sync_log(self, sync_log):
+        return self.db_accessor.save_sync_log(sync_log)
+
+    def get_sync_log(self, sync_log_id):
+        return self.db_accessor.get_sync_log(sync_log_id)
+
+    def convert_sync_log_type(self, sync_log, desired_type):
+        # TODO: This isn't db access, so it doesn't really live here...
+        #       but, it does have to do with DB models
+        return self.db_accessor.convert_sync_log_type(sync_log, desired_type)
+
+    def update_sync_log_format(self, sync_log):
+        # TODO: This isn't db access, but trying to keep migration related things in this class...
+        return self.db_accessor.update_sync_log_format(sync_log)
