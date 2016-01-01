@@ -728,24 +728,27 @@ class SimplifiedSyncLog(AbstractSyncLog, abstract_models.AbstractSyncLog):
         logger.debug('index tree after update: {}'.format(self.index_tree))
         logger.debug('extension index tree after update: {}'.format(self.extension_index_tree))
         if made_changes or case_list:
-            try:
-                if made_changes:
-                    logger.debug('made changes, saving.')
-                    self.last_submitted = datetime.utcnow()
-                    self.rev_before_last_submitted = self._rev
-                    self.save()
-                    if case_list:
-                        try:
-                            self.invalidate_cached_payloads()
-                        except ResourceConflict:
-                            # this operation is harmless so just blindly retry and don't
-                            # reraise if it goes through the second time
-                            SimplifiedSyncLog.get(self._id).invalidate_cached_payloads()
-            except ResourceConflict:
-                logging.exception('doc update conflict saving sync log {id}'.format(
-                    id=self._id,
-                ))
-                raise
+            self._save_and_invalidate_cache(made_changes, case_list)
+
+    def _save_and_invalidate_cache(self, made_changes, case_list):
+        try:
+            if made_changes:
+                logger.debug('made changes, saving.')
+                self.last_submitted = datetime.utcnow()
+                self.rev_before_last_submitted = self._rev
+                self.save()
+                if case_list:
+                    try:
+                        self.invalidate_cached_payloads()
+                    except ResourceConflict:
+                        # this operation is harmless so just blindly retry and don't
+                        # reraise if it goes through the second time
+                        SimplifiedSyncLog.get(self._id).invalidate_cached_payloads()
+        except ResourceConflict:
+            logging.exception('doc update conflict saving sync log {id}'.format(
+                id=self._id,
+            ))
+            raise
 
     @classmethod
     def from_other_format(cls, other_sync_log):
