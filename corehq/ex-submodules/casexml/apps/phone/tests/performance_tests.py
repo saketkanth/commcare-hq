@@ -40,20 +40,23 @@ class SyncPerformanceTest(SyncBaseTest):
                                additional_owner_ids=[REFERRED_TO_GROUP], domain=self.project.name)
 
         # this creates the initial blank sync token in the database
-        self.other_sync_log = synclog_from_restore_payload(generate_restore_payload(
-            self.project, self.other_user
-        ))
-        self.referral_sync_log = synclog_from_restore_payload(generate_restore_payload(
-            self.project, self.referral_user
-        ))
+        self.other_sync_log = synclog_from_restore_payload(
+            self.project.name,
+            generate_restore_payload(self.project, self.other_user)
+        )
+        self.referral_sync_log = synclog_from_restore_payload(
+            self.project.name,
+            generate_restore_payload(self.project, self.referral_user)
+        )
 
         self.assertTrue(SHARED_ID in self.other_sync_log.owner_ids_on_phone)
         self.assertTrue(OTHER_USER_ID in self.other_sync_log.owner_ids_on_phone)
 
         self.user.additional_owner_ids = [SHARED_ID]
-        self.sync_log = synclog_from_restore_payload(generate_restore_payload(
-            self.project, self.user
-        ))
+        self.sync_log = synclog_from_restore_payload(
+            self.project.name,
+            generate_restore_payload(self.project, self.user)
+        )
         self.assertTrue(SHARED_ID in self.sync_log.owner_ids_on_phone)
         self.assertTrue(USER_ID in self.sync_log.owner_ids_on_phone)
 

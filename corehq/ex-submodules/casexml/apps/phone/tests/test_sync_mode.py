@@ -52,7 +52,9 @@ class SyncBaseTest(TestCase):
         # this creates the initial blank sync token in the database
         restore_config = RestoreConfig(self.project, user=self.user,
                                        cache_settings=RestoreCacheSettings(overwrite_cache=True))
-        self.sync_log = synclog_from_restore_payload(restore_config.get_payload().as_string())
+        self.sync_log = synclog_from_restore_payload(
+            self.project.name, restore_config.get_payload().as_string()
+        )
         self.factory = CaseFactory(
             case_defaults={
                 'user_id': USER_ID,
@@ -1058,6 +1060,7 @@ class ChangingOwnershipTest(SyncBaseTest):
         self.extra_owner_id = 'extra-owner-id'
         self.user.additional_owner_ids = [self.extra_owner_id]
         self.sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.user)
         )
         self.assertTrue(self.extra_owner_id in self.sync_log.owner_ids_on_phone)
@@ -1080,7 +1083,10 @@ class ChangingOwnershipTest(SyncBaseTest):
                 user=self.user,
                 params=RestoreParams(version=V2, sync_log_id=since),
             )
-            return synclog_from_restore_payload(incremental_restore_config.get_payload().as_string())
+            return synclog_from_restore_payload(
+                self.project.name,
+                incremental_restore_config.get_payload().as_string()
+            )
 
         # make sure it's there on new sync
         incremental_sync_log = _get_incremental_synclog_for_user(
@@ -1260,6 +1266,7 @@ class MultiUserSyncTest(SyncBaseTest):
 
         # this creates the initial blank sync token in the database
         self.other_sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.other_user)
         )
 
@@ -1268,6 +1275,7 @@ class MultiUserSyncTest(SyncBaseTest):
 
         self.user.additional_owner_ids = [SHARED_ID]
         self.sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.user)
         )
         self.assertTrue(SHARED_ID in self.sync_log.owner_ids_on_phone)
@@ -1372,9 +1380,11 @@ class MultiUserSyncTest(SyncBaseTest):
 
         # both users syncs
         main_sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.user)
         )
         self.other_sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.other_user)
         )
 
@@ -1431,6 +1441,7 @@ class MultiUserSyncTest(SyncBaseTest):
 
         # sync then close case from another user
         other_sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.other_user)
         )
         close_block = CaseBlock(
@@ -1450,7 +1461,10 @@ class MultiUserSyncTest(SyncBaseTest):
 
         # make sure closed cases don't show up in the next sync log
         next_synclog = synclog_from_restore_payload(
-            generate_restore_payload(self.project, self.user, restore_id=self.sync_log._id)
+            self.project.name,
+            generate_restore_payload(
+                self.project, self.user, restore_id=self.sync_log.sync_log_id
+            )
         )
         self.assertFalse(next_synclog.phone_is_holding_case(case_id))
 
@@ -1593,6 +1607,7 @@ class MultiUserSyncTest(SyncBaseTest):
 
         # sync cases to second user
         other_sync_log = synclog_from_restore_payload(
+            self.project.name,
             generate_restore_payload(self.project, self.other_user)
         )
 
@@ -1629,7 +1644,7 @@ class MultiUserSyncTest(SyncBaseTest):
         self.assertTrue("something new" in payload)
         self.assertTrue("hi!" in payload)
         # also check that the latest sync log knows those cases are no longer relevant to the phone
-        log = synclog_from_restore_payload(payload)
+        log = synclog_from_restore_payload(self.project.name, payload)
         self.assertFalse(log.phone_is_holding_case(case_id))
         self.assertFalse(log.phone_is_holding_case(parent_id))
 
@@ -1697,6 +1712,7 @@ class MultiUserSyncTest(SyncBaseTest):
             form = self._postWithSyncToken(os.path.join(folder_path, f), self.sync_log.get_id)
             self.assertFalse(hasattr(form, "problem") and form.problem)
             synclog_from_restore_payload(
+                self.project.name,
                 generate_restore_payload(self.project, self.user, version="2.0")
             )
 
@@ -1739,7 +1755,8 @@ class MultiUserSyncTest(SyncBaseTest):
             form_extras={'last_sync_token': None}
         )
         latest_sync_log = synclog_from_restore_payload(
-            generate_restore_payload(self.project, self.user, restore_id=self.sync_log._id)
+            self.project.name,
+            generate_restore_payload(self.project, self.user, restore_id=self.sync_log.sync_log_id)
         )
         self._testUpdate(latest_sync_log.sync_log_id, {child_id: [index_ref], parent_id: []})
 
@@ -1796,7 +1813,8 @@ class MultiUserSyncTest(SyncBaseTest):
             form_extras={'last_sync_token': None}
         )
         latest_sync_log = synclog_from_restore_payload(
-            generate_restore_payload(self.project, self.user, restore_id=self.sync_log._id)
+            self.project.name,
+            generate_restore_payload(self.project, self.user, restore_id=self.sync_log.sync_log_id)
         )
         new_mom_ref = CommCareCaseIndex(identifier='mom', referenced_type='mom', referenced_id=new_mom_id)
         self._testUpdate(latest_sync_log.sync_log_id, {

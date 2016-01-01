@@ -4,6 +4,7 @@ from casexml.apps.phone.models import get_properly_wrapped_sync_log, get_sync_lo
 from casexml.apps.phone.restore import RestoreConfig, RestoreParams, RestoreCacheSettings
 from casexml.apps.phone.tests.dbaccessors import get_all_sync_logs_docs
 from casexml.apps.phone.xml import SYNC_XMLNS
+from corehq.form_processor.interfaces.dbaccessors import SyncLogAccessors
 
 
 def synclog_id_from_restore_payload(restore_payload):
@@ -11,8 +12,8 @@ def synclog_id_from_restore_payload(restore_payload):
     return element.findall('{%s}Sync' % SYNC_XMLNS)[0].findall('{%s}restore_id' % SYNC_XMLNS)[0].text
 
 
-def synclog_from_restore_payload(restore_payload):
-    return get_properly_wrapped_sync_log(synclog_id_from_restore_payload(restore_payload))
+def synclog_from_restore_payload(domain, restore_payload):
+    return SyncLogAccessors(domain).get_sync_log(synclog_id_from_restore_payload(restore_payload))
 
 
 def get_exactly_one_wrapped_sync_log():
