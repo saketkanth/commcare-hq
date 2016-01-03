@@ -518,6 +518,18 @@ class SyncLogSQL(models.Model, RedisLockableMixIn,
         serializer = SyncLogSQLSerializer(self)
         return serializer.data
 
+    def _save_and_invalidate_cache(self, made_changes, case_list):
+        from corehq.form_processor.backends.sql.dbaccessors import SyncLogAccessorSQL
+        if made_changes:
+            # TODO: get a logger
+            # logger.debug('made changes, saving.')
+
+            self.last_submitted = datetime.utcnow()
+            SyncLogAccessorSQL.save_sync_log(self)
+
+            if case_list:
+                self.invalidate_cached_payloads()
+
 
 class CommCareCaseSQL(DisabledDbMixin, models.Model, RedisLockableMixIn,
                       AttachmentMixin, AbstractCommCareCase, TrackRelatedChanges,
