@@ -362,6 +362,7 @@ corehq.apps.callcenter:
   - corehq.apps.commtrack
   - corehq.apps.domain
   - corehq.apps.dropbox
+  - corehq.apps.fixtures
   - corehq.apps.groups
   - corehq.apps.hqcase
   - corehq.apps.locations
@@ -370,12 +371,15 @@ corehq.apps.callcenter:
   - corehq.apps.sofabed
   - corehq.apps.tour
   - corehq.apps.tzmigration
+  - corehq.apps.userhack
   - corehq.apps.users
   - corehq.couchapps
   - corehq.form_processor
   - corehq.sql_accessors
   - corehq.sql_proxy_accessors
   - couchforms
+  - custom.ilsgateway
+  - custom.ewsghana
   - django.contrib.admin
   - django_digest
   - django_prbac
