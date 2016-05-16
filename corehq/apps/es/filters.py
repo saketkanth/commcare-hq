@@ -86,13 +86,18 @@ def doc_id(doc_id):
 
 def missing(field, exist=True, null=True):
     """Only return docs missing a value for ``field``"""
-    return {
+    filter = {
         "missing": {
             "field": field,
-            "existence": exist,
-            "null_value": null
         }
     }
+    if exist is not None:
+        filter["existence"] = exist
+
+    if null is not None:
+        filter["null_value"] = null
+
+    return filter
 
 
 def exists(field):
