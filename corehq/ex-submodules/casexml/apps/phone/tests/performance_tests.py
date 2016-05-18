@@ -1,5 +1,8 @@
 from casexml.apps.case.mock import CaseBlock
 from casexml.apps.phone.caselogic import get_related_cases
+from casexml.apps.phone.cleanliness import get_case_footprint_info, _get_direct_dependencies
+from casexml.apps.phone.cleanliness import get_dependent_case_info
+from casexml.apps.phone.data_providers.case.clean_owners import CleanOwnerCaseSyncOperation, filter_cases_modified_since
 from casexml.apps.phone.tests.test_sync_mode import SyncBaseTest, PARENT_TYPE
 from casexml.apps.phone.tests.utils import synclog_from_restore_payload, generate_restore_payload
 from casexml.apps.case.tests.util import assert_user_has_cases
@@ -59,10 +62,15 @@ class SyncPerformanceTest(SyncBaseTest):
 
     @line_profile([
         RestoreConfig.get_payload,
-        get_related_cases,
+        CleanOwnerCaseSyncOperation.get_payload,
+        filter_cases_modified_since,
+        CleanOwnerCaseSyncOperation._get_case_ids_for_owners_without_extensions,
+        get_case_footprint_info,
+        get_dependent_case_info,
+        _get_direct_dependencies
     ])
     def test_profile_get_related_cases(self):
-        total_parent_cases = 50
+        total_parent_cases = 12000
 
         id_list = ['case_id_{}'.format(i) for i in range(total_parent_cases)]
         self._createCaseStubs(id_list, user_id=USER_ID, owner_id=SHARED_ID)
@@ -76,14 +84,14 @@ class SyncPerformanceTest(SyncBaseTest):
                 create=True,
                 case_id=case_id,
                 user_id=USER_ID,
-                owner_id=REFERRED_TO_GROUP,
+                owner_id=SHARED_ID,
                 case_type=REFERRAL_TYPE,
                 index={'parent': (PARENT_TYPE, parent_case_id)}
             ).as_xml())
         self._postFakeWithSyncToken(caseblocks, self.sync_log.get_id)
 
         all_cases = id_list + new_case_ids
-        assert_user_has_cases(self, self.referral_user, all_cases, restore_id=self.referral_sync_log.get_id)
+        assert_user_has_cases(self, self.other_user, all_cases, restore_id=self.other_sync_log.get_id)
 
     @line_profile([
         RestoreConfig.get_payload,
