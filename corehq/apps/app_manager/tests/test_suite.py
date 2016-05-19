@@ -737,7 +737,7 @@ class SuiteTest(SimpleTestCase, TestXmlMixin, SuiteMixin):
                     ['es', 'uno'],
                 ],
                 '2': [
-                    ['en', 'two'],
+                    ['en', u'प्रसव'],
                     ['es', 'dos\''],
                 ],
             }
