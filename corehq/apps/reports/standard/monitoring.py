@@ -252,10 +252,11 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
             mobile_user_and_group_slugs,
         )
         users_by_id = {user.user_id: user for user in users_data.combined_users}
+        user_ids = users_by_id.keys()
 
-        es_results = self.es_queryset(users_by_id.keys())
+        es_results = self.es_queryset(user_ids)
         buckets = {user_id: bucket for user_id, bucket in es_results.aggregations.users.buckets_dict.items()}
-        if None in users_by_id.keys():
+        if None in user_ids:
             buckets[None] = es_results.aggregations.missing_users.bucket
         rows = []
         for user_id, user in users_by_id.items():
