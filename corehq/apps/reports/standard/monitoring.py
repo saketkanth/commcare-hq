@@ -281,6 +281,32 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         return self.users_by_id.keys()
 
     @property
+    def sort_column(self):
+        column_num = self.request_params.get('iSortCol_0', 0)
+        if column_num == 0:
+            return None # user
+        elif column_num == 13:
+            return "active_total"
+        elif column_num == 14:
+            return "inactive_total"
+        else:
+            landmark = column_num // 4
+            sub_col = column_num % 4
+            if sub_col == 1:
+                column = ""
+            elif sub_col == 2:
+                column = "active"
+            elif sub_col == 3:
+                column = "closed"
+            else:
+                column = "" # todo move proportion to script to order by
+
+        if column:
+            return "landmark_%d>%s" % (landmark, column)
+        else:
+            return "landmark_%d" % (landmark,)
+
+    @property
     def rows(self):
         es_results = self.es_queryset()
         buckets = {user_id: bucket for user_id, bucket in es_results.aggregations.users.buckets_dict.items()}
@@ -356,6 +382,9 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         )
 
         top_level_aggregation = self.add_landmark_aggregations(top_level_aggregation, end_date)
+
+        if self.sort_column:
+            top_level_aggregation = top_level_aggregation.order(self.sort_column)
 
         query = (
             case_es.CaseES()
