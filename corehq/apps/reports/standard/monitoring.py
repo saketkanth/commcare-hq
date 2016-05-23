@@ -253,7 +253,7 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         )
         users_by_id = {user.user_id: user for user in users_data.combined_users}
 
-        es_results = self.es_queryset(users_by_id)
+        es_results = self.es_queryset(users_by_id.keys())
         buckets = {user_id: bucket for user_id, bucket in es_results.aggregations.users.buckets_dict.items()}
         if None in users_by_id.keys():
             buckets[None] = es_results.aggregations.missing_users.bucket
@@ -300,7 +300,7 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         self.total_row = format_row(self.TotalRow(rows, _("All Users")))
         return map(format_row, rows)
 
-    def es_queryset(self, users_by_id):
+    def es_queryset(self, user_ids):
         end_date = ServerTime(self.utc_now).phone_time(self.timezone).done()
         milestone_start = ServerTime(self.utc_now - self.milestone).phone_time(self.timezone).done()
 
@@ -336,11 +336,11 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         query = (
             case_es.CaseES()
             .domain(self.domain)
-            .user_ids_handle_unknown(users_by_id.keys())
+            .user_ids_handle_unknown(user_ids)
             .size(0)
         )
         query = query.aggregation(top_level_aggregation)
-        missing_users = None in users_by_id.keys()
+        missing_users = None in user_ids
 
         if missing_users:
             query = query.aggregation(
