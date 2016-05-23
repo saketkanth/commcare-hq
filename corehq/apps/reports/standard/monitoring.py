@@ -34,6 +34,7 @@ from corehq.apps.reports.filters.users import ExpandedMobileWorkerFilter as EMWF
 from corehq.apps.reports.standard import ProjectReportParametersMixin, \
     DatespanMixin, ProjectReport
 from corehq.apps.reports.filters.forms import CompletionOrSubmissionTimeFilter, FormsByApplicationFilter
+from corehq.apps.reports.filters.select import CaseTypeFilter
 from corehq.apps.reports.datatables import DataTablesHeader, DataTablesColumn, DTSortType, DataTablesColumnGroup
 from corehq.apps.reports.generic import GenericTabularReport
 from corehq.apps.reports.models import HQUserType
@@ -152,6 +153,19 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
     emailable = True
     description = ugettext_noop("Followup rates on active cases.")
     is_cacheable = True
+    ajax_pagination = True
+
+    @property
+    def shared_pagination_GET_params(self):
+        params = [
+            dict(
+                name=EMWF.slug,
+                value=EMWF.get_value(self.request, self.domain)),
+            dict(
+                name=CaseTypeFilter.slug,
+                value=CaseTypeFilter.get_value(self.request, self.domain)),
+        ]
+        return params
 
     @property
     def landmark_columns(self):
@@ -224,6 +238,10 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         return datetime.datetime.utcnow()
 
     @property
+    def total_records(self):
+        return len(self.user_ids)
+
+    @property
     def headers(self):
 
         def make_column(title, help_text, num_days):
@@ -277,14 +295,6 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
             cells = [row.header()]
             total_touched = row.total_touched_count()
 
-            def add_numeric_cell(text, value=None):
-                if value is None:
-                    try:
-                        value = int(text)
-                    except ValueError:
-                        value = text
-                cells.append(util.format_datatables_data(text=text, sort_key=value))
-
             for landmark in self.landmarks:
                 landmark_key = unicode(landmark.days)
 
@@ -299,13 +309,13 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
                     p_val = None
                     proportion = '--'
 
-                add_numeric_cell(modified, modified)
-                add_numeric_cell(active, active)
-                add_numeric_cell(closed, closed)
-                add_numeric_cell(proportion, p_val)
+                cells.append(modified)
+                cells.append(active)
+                cells.append(closed)
+                cells.append(proportion)
 
-            add_numeric_cell(row.total_active_count())
-            add_numeric_cell(row.total_inactive_count())
+            cells.append(row.total_active_count())
+            cells.append(row.total_inactive_count())
             return cells
 
         self.total_row = format_row(self.TotalRow(es_results, _("All Users")))
@@ -411,7 +421,7 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
             return 0 if not self.bucket else self.bucket.active_total.doc_count
 
         def header(self):
-            return self.report.get_user_link(self.user)
+            return self.report.get_user_link(self.user)['html']
 
     class TotalRow(object):
 
