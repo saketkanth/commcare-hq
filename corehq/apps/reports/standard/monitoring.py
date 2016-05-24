@@ -315,7 +315,8 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         rows = []
         for user_id, user in self.users_by_id.items():
             bucket = buckets.get(user_id, None)
-            rows.append(self.Row(self, user, bucket))
+            if bucket:
+                rows.append(self.Row(self, user, bucket))
 
         def format_row(row):
             cells = [row.header()]
@@ -375,7 +376,7 @@ class CaseActivityReport(WorkerMonitoringCaseReportTableBase):
         )
 
         top_level_aggregation = (
-            TermsAggregation('users', 'user_id')
+            TermsAggregation('users', 'user_id', size=self.pagination.start + self.pagination.count)
             .aggregation(touched_total_aggregation)
             .aggregation(active_total_aggregation)
             .aggregation(inactive_total_aggregation)
