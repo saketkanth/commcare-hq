@@ -18,6 +18,7 @@ from pillowtop.checkpoints.manager import PillowCheckpoint, PillowCheckpointEven
 from pillowtop.es_utils import ElasticsearchIndexInfo, get_index_info_from_pillow
 from pillowtop.pillow.interface import ConstructedPillow
 from pillowtop.processors.elastic import ElasticProcessor
+from pillowtop.processors.form import FormProcessor
 from pillowtop.reindexer.change_providers.couch import CouchViewChangeProvider
 from pillowtop.reindexer.reindexer import get_default_reindexer_for_elastic_pillow, \
     ElasticPillowReindexer
@@ -160,6 +161,22 @@ def get_couch_form_reindexer():
                 'include_docs': True,
             }
         )
+    )
+
+
+def get_form_kafka_pillow(pillow_id='form-processor-pillow'):
+    checkpoint = PillowCheckpoint(
+        pillow_id,
+    )
+    form_processor = FormProcessor()
+    return ConstructedPillow(
+        name=pillow_id,
+        checkpoint=checkpoint,
+        change_feed=KafkaChangeFeed(topics=[topics.FORM], group_id='domains-to-es'),  # TODO: include multiple topics
+        processor=form_processor,
+        change_processed_event_handler=PillowCheckpointEventHandler(
+            checkpoint=checkpoint, checkpoint_frequency=100,
+        ),
     )
 
 
