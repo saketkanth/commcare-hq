@@ -273,8 +273,7 @@ class XFormInstanceSQL(DisabledDbMixin, models.Model, RedisLockableMixIn, Attach
         from .utils import convert_xform_to_json, adjust_datetimes
         xml = self.get_xml()
         form_json = convert_xform_to_json(xml)
-        adjust_datetimes(form_json)
-        return form_json
+        return adjust_datetimes(form_json)
 
     @property
     def history(self):
