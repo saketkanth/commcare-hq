@@ -9,15 +9,6 @@ from django.core.management import call_command
 from django_prbac.models import Grant, Role
 
 # CCHQ imports
-from corehq.apps.accounting.models import (
-    DefaultProductPlan,
-    Feature,
-    FeatureRate,
-    SoftwarePlan,
-    SoftwarePlanVersion,
-    SoftwareProduct,
-    SoftwareProductRate,
-)
 from corehq.apps.hqadmin.management.commands import cchq_prbac_bootstrap
 
 
@@ -35,15 +26,6 @@ class TestCchqPrbacBootstrap(TestCase):
     def tearDownClass(cls):
         # re-bootstrap for other tests
         call_command('cchq_prbac_bootstrap', testing=True)
-
-        DefaultProductPlan.objects.all().delete()
-        SoftwarePlanVersion.objects.all().delete()
-        SoftwarePlan.objects.all().delete()
-        SoftwareProductRate.objects.all().delete()
-        SoftwareProduct.objects.all().delete()
-        FeatureRate.objects.all().delete()
-        Feature.objects.all().delete()
-        call_command('cchq_software_plan_bootstrap', testing=True)
 
     def test_dry_run(self):
         """
