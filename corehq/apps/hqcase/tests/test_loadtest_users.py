@@ -1,19 +1,21 @@
-from django.test import TestCase
 from casexml.apps.case.mock import CaseFactory, CaseStructure, CaseIndex
 from casexml.apps.case.tests.util import delete_all_cases
 from casexml.apps.case.tests.util import extract_caseblocks_from_xml
 from casexml.apps.case.xml import V2
 from casexml.apps.phone.restore import RestoreConfig, RestoreParams
+
+from corehq.apps.accounting.tests import BaseAccountingTest
 from corehq.apps.domain.models import Domain
 from corehq.apps.users.models import CommCareUser
 from corehq.form_processor.tests import run_with_all_backends
 from corehq.toggles import ENABLE_LOADTEST_USERS
 
 
-class LoadtestUserTest(TestCase):
+class LoadtestUserTest(BaseAccountingTest):
 
     @classmethod
     def setUpClass(cls):
+        super(LoadtestUserTest, cls).setUpClass()
         cls.domain = Domain(name='foo')
         cls.domain.save()
         cls.user = CommCareUser.create(cls.domain.name, 'somebody', 'password')
@@ -22,6 +24,7 @@ class LoadtestUserTest(TestCase):
         ENABLE_LOADTEST_USERS.set('foo', True, namespace='domain')
 
     def setUp(self):
+        super(LoadtestUserTest, self).setUp()
         delete_all_cases()
         self.assertTrue(ENABLE_LOADTEST_USERS.enabled('foo'))
 
@@ -29,6 +32,7 @@ class LoadtestUserTest(TestCase):
     def tearDownClass(cls):
         cls.user.delete()
         cls.domain.delete()
+        super(LoadtestUserTest, cls).tearDownClass()
 
     @run_with_all_backends
     def test_no_factor_set(self):
