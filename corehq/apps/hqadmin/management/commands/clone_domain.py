@@ -161,10 +161,11 @@ class Command(BaseCommand):
             location.lineage = new_lineage
 
             old_type_name = location.location_type_name
-            location._sql_location_type = LocationType.objects.get(
-                domain=self.new_domain,
-                name=old_type_name,
-            )
+            if not self.no_commmit:
+                location._sql_location_type = LocationType.objects.get(
+                    domain=self.new_domain,
+                    name=old_type_name,
+                )
             children = location.children
             old_id, new_id = self.save_couch_copy(location, self.new_domain)
             id_map[old_id] = new_id
